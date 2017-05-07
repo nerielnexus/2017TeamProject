@@ -8,8 +8,8 @@ public class NumberChange : MonoBehaviour
 	public Image AreaBG;
 	public Image AreaTarget;
 	public Canvas AreaParent;
-	public GameObject user;
 
+	#region 변수와 프로퍼티
 	// 게이지 최대값
 	private float count;
 	public float _Count
@@ -45,9 +45,7 @@ public class NumberChange : MonoBehaviour
 
 	// 게이지 증가량
 	public float rate;
-
-	// 피버 확인용
-	private bool isFever;
+	#endregion
 
 	// Use this for initialization
 	void Start()
@@ -59,53 +57,41 @@ public class NumberChange : MonoBehaviour
 		number = 0.0f;
 		isHigh = false;
 		ActionSize = 1;
-		isFever = false;
 
 		AreaTarget.rectTransform.sizeDelta = new Vector2(60, 100);
-
-		user = GameObject.FindWithTag("MyPlayer") as GameObject;
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		// 플레이어의 피버 상태를 받아옴
-		this.isFever = user.GetComponent<PlayerScript>( ).IsFever;
+		if (Input.GetKey(KeyCode.Alpha1))
+			ActionSize = 1;
 
-		// 플레이어의 콤보 현황에 따라 판정영역 조절
-		// 피버 상태일때는 -1 로 고정
-		if( !isFever )
-			ActionSize = user.GetComponent<PlayerScript>( ).Level;
-		else
-			ActionSize = -1;
-		
-		
+		if (Input.GetKey(KeyCode.Alpha2))
+			ActionSize = 2;
+
+		if (Input.GetKey(KeyCode.Alpha3))
+			ActionSize = 3;
+
 		switch (ActionSize)
 		{
-			case -1:
-				AreaTarget.rectTransform.sizeDelta = new Vector2(100 , 100);
-				rate = 3.4f;
-				break;
-
-			case 0:
-				AreaTarget.rectTransform.sizeDelta = new Vector2(60, 100);
-				rate = 0.034f;
-				break;
-
 			case 1:
-				AreaTarget.rectTransform.sizeDelta = new Vector2(40, 100);
-				rate = 0.051f;
+				AreaTarget.rectTransform.sizeDelta = new Vector2(60, 100);
 				break;
 
 			case 2:
-			default:
+				AreaTarget.rectTransform.sizeDelta = new Vector2(40, 100);
+				break;
+
+			case 3:
 				AreaTarget.rectTransform.sizeDelta = new Vector2(20, 100);
-				rate = 0.051f;
+				break;
+
+			default:
 				break;
 		}
 	}
 
-	// 게이지 이동 코루틴
 	public IEnumerator RoundTrip()
 	{
 		while (true)
@@ -119,31 +105,23 @@ public class NumberChange : MonoBehaviour
 			{
 				number -= rate;
 				transform.position -= new Vector3(rate, 0, 0);
+				yield return new WaitForSeconds(0.0f);
 			}
 			else
 			{
 				number += rate;
 				transform.position += new Vector3(rate, 0, 0);
-			} 
+				yield return new WaitForSeconds(0.0f);
+			}
 
 			yield return null;
 		}
 	}
 
-	// 게이지 성공 판정
 	public bool DoGaugeAction()
 	{
-		int tempAS = 0;
-
-		if( ActionSize >= 3 )
-			tempAS = 2;
-		else if( ActionSize <= -1 )
-			tempAS = -2;
-		else
-			tempAS = ActionSize;
-
-		float min = count * 0.1f * (2 + tempAS);
-		float max = count * (1.0f - 0.1f * (2 + tempAS));
+		float min = count * 0.1f * (1 + ActionSize);
+		float max = count * (1.0f - 0.1f * (1 + ActionSize));
 
 		if(number >= min && number <= max)
 			return true;
